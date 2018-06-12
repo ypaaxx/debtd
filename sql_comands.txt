@@ -1,0 +1,35 @@
+<!DOCTYPE RCC>
+<RCC version="1.0"/>
+
+Вход
+mysql -u serverDebt -p
+3wAK5M
+
+Создание базы, таблицы, юзера
+CREATE DATABASE debt;
+CREATE USER 'serverDebt'@'localhost' IDENTIFIED BY '132435';
+GRANT ALL ON debt.* TO 'sreverDebt'@'localhost';
+CREATE TABLE debt.operations(id INT PRIMARY KEY AUTO_INCREMENT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, requester VARCHAR(15), confirmatory VARCHAR(15), sum SMALLINT, confirm TINYINT, note TINYTEXT);
+CREATE TABLE debt.users(id INT PRIMARY KEY AUTO_INCREMENT, login VARCHAR(15), password VARCHAR(15));
+
+Добавление операции
+INSERT INTO debt.operations(requester, confirmatory, sum) VALUE('from', 'to', howMuch);
+
+New user
+INSERT INTO debt.users(login, password) VALUE('fura', '132435');
+INSERT INTO debt.operations(requester, confirmatory, sum) VALUE('fura', 'gleb', 0);
+
+Запрос таблицы контактов и балансов
+SELECT name, (plus - minus) AS balance FROM
+(SELECT requester AS name, sum(sum) AS plus FROM debt.operations WHERE confirmatory='gleb' GROUP BY name) AS t1
+JOIN
+(SELECT confirmatory AS name, sum(sum) AS minus FROM debt.operations WHERE requester='gleb' GROUP BY name) AS t2
+USING (name);
+
+Поиск требующих подтверждения операций
+SELECT requester, sum, id FROM debt.operations WHERE confirm=NULL AND confirmatory="gleb";
+
+Подтверждение операции
+UPDATE debt.operations SET confirm = 1 WHERE id = 1;
+
+3wAK5M
