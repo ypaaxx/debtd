@@ -5,6 +5,7 @@
 #include <QSqlQuery>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QFile>
 
 #include <user.h>
 

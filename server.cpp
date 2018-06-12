@@ -1,9 +1,10 @@
 #include "server.h"
 
-#include <QFile>
-#include <QDebug>
-
 Server::Server() : QTcpServer(){
+    //log = QTextStream("log.txt", QIODevice::WriteOnly);
+    log.setDevice(new QFile("log.txt"));
+    //log.
+
     //Подключение к серверу MySQL
     database = QSqlDatabase::addDatabase("QMYSQL");
     database.setHostName("localhost");
@@ -11,18 +12,18 @@ Server::Server() : QTcpServer(){
     database.setUserName("serverDebt");
     database.setPassword("132435");
     bool ok = database.open();
-    qDebug()<< "connection to database" << ok;
+    log << "connection to database" << ok << endl;
     if(!ok) deleteLater();
 
     //Начинаем слушать на порту входящие подключения
-    qDebug()<< "Start listen on port" << PORT;
+    log << "Start listen on port" << PORT << endl;
     listen(QHostAddress::Any, PORT);
     connect(this, SIGNAL(newConnection()), this, SLOT(newUser()));
 }
 
 Server::~Server()
 {
-    qDebug() << "exit";
+    log << "exit" << endl;
 
 }
 
@@ -38,7 +39,7 @@ void Server::authorization(User* user, QString *password){
         remove(user);
         return;
     }
-    qDebug() << user->getLogin() << "connect" << (bool) auth.size();
+    log << user->getLogin() << "connect" << (bool) auth.size() << endl;
    getBalance(user);
 
 }
@@ -47,12 +48,12 @@ void Server::remove(User *user)
 {
     //Удаляется запись в списке подключений
     users.removeOne(user);
-    qDebug()<< "disconnect" << user->getLogin();
+    log << "disconnect" << user->getLogin() << endl;
 
 }
 
 void Server::getBalance(User *user){
-    //qDebug()<< "balanced" << user->getLogin();
+    //log<< "balanced" << user->getLogin();
     QSqlQuery balance;
     balance.prepare("SELECT name, (plus - minus) AS balance FROM "
                     "(SELECT requester AS name, sum(sum) AS minus FROM debt.operations WHERE confirmatory=:user GROUP BY name) AS t1 "
@@ -66,15 +67,13 @@ void Server::getBalance(User *user){
     qint8  command = 1;
     QDataStream *out = user->getStream();
     *out << command;
-    qDebug()<< user->getLogin()<< "Комманда:" << command;
+    log << user->getLogin()<< "command:" << command << endl;
     *out << balance.size();
-    //qDebug()<< balance.size();
     while (balance.next()){
         QString name = balance.value("name").toString();
         int sum = balance.value("balance").toInt();
         *out << name << sum; 
     }
-
 }
 
 void Server::newOperation(User *user, QString to, int sum){
@@ -85,17 +84,16 @@ void Server::newOperation(User *user, QString to, int sum){
     operation.bindValue(":howMuch", sum);
     operation.exec();
 
-    qDebug()<< "new operation" << user->getLogin() << ">>" << to << sum;
+    log << "new operation " << user->getLogin() << ">>" << to << sum << endl;
     getBalance(user);
 
 }
 
 void Server::newUser(){
-    qDebug()<< "new connection";
+    log << "new connection" << endl;
     User *user = new User(nextPendingConnection());
     users << user;
     connect(user, SIGNAL(deleteMi(User*)), this, SLOT(remove(User*)));
     connect(user, SIGNAL(auth(User*, QString*)), this, SLOT(authorization(User*,QString*)));
     connect(user, SIGNAL(operation(User*,QString,int)), this, SLOT(newOperation(User*,QString,int)));
-
 }

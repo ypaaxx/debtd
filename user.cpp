@@ -17,7 +17,7 @@ void User::read(){
         QString *password = new QString;
         stream >> login;
         stream >> *password;
-        qDebug() << "authorization" << login;
+        //qDebug() << "authorization" << login;
         emit auth(this, password);
     }
         break;
@@ -33,7 +33,7 @@ void User::read(){
         break;
 
     default:
-        qDebug() << "Неизвестная комманда от" << login << command;
+        //qDebug() << "Неизвестная комманда от" << login << command;
         break;
     }
 
