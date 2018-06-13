@@ -1,9 +1,10 @@
 #include "server.h"
 
 Server::Server() : QTcpServer(){
-    //log = QTextStream("log.txt", QIODevice::WriteOnly);
-    log.setDevice(new QFile("log.txt"));
-    //log.
+
+    auto logFile = new QFile("log.txt");
+    logFile->open(QIODevice::WriteOnly);
+    log.setDevice(logFile);
 
     //Подключение к серверу MySQL
     database = QSqlDatabase::addDatabase("QMYSQL");
@@ -24,7 +25,7 @@ Server::Server() : QTcpServer(){
 Server::~Server()
 {
     log << "exit" << endl;
-
+    log.device()->close();
 }
 
 void Server::authorization(User* user, QString *password){
@@ -40,7 +41,7 @@ void Server::authorization(User* user, QString *password){
         return;
     }
     log << user->getLogin() << "connect" << (bool) auth.size() << endl;
-   getBalance(user);
+    getBalance(user);
 
 }
 
@@ -72,7 +73,7 @@ void Server::getBalance(User *user){
     while (balance.next()){
         QString name = balance.value("name").toString();
         int sum = balance.value("balance").toInt();
-        *out << name << sum; 
+        *out << name << sum;
     }
 }
 
