@@ -10,12 +10,12 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    qDebug() << QTime::currentTime().toString("h:m:s");
+    //qDebug() << QTime::currentTime().toString("h:m:s");
 
-    //auto pid = fork();
-    auto pid = 0; //Для отладки
+    auto pid = fork();
+    //auto pid = 0; //Для отладки
     if(pid > 0){
-        qDebug() << "PID дочернего процесса" << pid;
+        //qDebug() << "PID дочернего процесса" << pid;
         a.exit();
     } else if(pid == 0){
         Server server;
